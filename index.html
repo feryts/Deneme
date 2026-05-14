@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Paneli</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary-color: #007bff;
+            --text-color: #333;
+            --btn-hover: #0056b3;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            background: var(--card-bg);
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            background: #ddd;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #888;
+            border: 3px solid var(--primary-color);
+        }
+
+        h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        p.subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        #links-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .link-item {
+            display: block;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .link-item:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+        .delete-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            display: none;
+        }
+
+        .admin-mode .delete-btn {
+            display: block;
+        }
+
+        /* Admin Section */
+        .admin-controls {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button.add-btn {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button.toggle-admin {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="profile-img">👤</div>
+    <h1 id="user-name">Ferhat Yarımtaş</h1>
+    <p class="subtitle">Dijital Kartvizit</p>
+
+    <div id="links-container">
+        <!-- Linkler buraya gelecek -->
+    </div>
+
+    <div class="admin-controls hidden" id="admin-panel">
+        <h3>Yeni Link Ekle</h3>
+        <input type="text" id="link-title" placeholder="Başlık (Örn: WhatsApp)">
+        <input type="text" id="link-url" placeholder="URL (https://...)">
+        <button class="add-btn" onclick="addLink()">Listeye Ekle</button>
+    </div>
+
+    <button class="toggle-admin" onclick="toggleAdmin()">Yönetici Panelini Aç/Kapat</button>
+</div>
+
+<script>
+    let links = JSON.parse(localStorage.getItem('myLinks')) || [];
+
+    function renderLinks() {
+        const container = document.getElementById('links-container');
+        container.innerHTML = '';
+        links.forEach((link, index) => {
+            const a = document.createElement('div');
+            a.className = 'link-item-wrapper';
+            a.style.position = 'relative';
+            
+            const linkTag = document.createElement('a');
+            linkTag.href = link.url;
+            linkTag.target = '_blank';
+            linkTag.className = 'link-item';
+            linkTag.innerText = link.title;
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.innerText = 'Sil';
+            delBtn.onclick = (e) => {
+                e.preventDefault();
+                deleteLink(index);
+            };
+
+            a.appendChild(linkTag);
+            a.appendChild(delBtn);
+            container.appendChild(a);
+        });
+    }
+
+    function addLink() {
+        const title = document.getElementById('link-title').value;
+        const url = document.getElementById('link-url').value;
+
+        if (title && url) {
+            links.push({ title, url });
+            localStorage.setItem('myLinks', JSON.stringify(links));
+            renderLinks();
+            document.getElementById('link-title').value = '';
+            document.getElementById('link-url').value = '';
+        } else {
+            alert('Lütfen hem başlık hem de link girin!');
+        }
+    }
+
+    function deleteLink(index) {
+        links.splice(index, 1);
+        localStorage.setItem('myLinks', JSON.stringify(links));
+        renderLinks();
+    }
+
+    function toggleAdmin() {
+        const panel = document.getElementById('admin-panel');
+        const container = document.querySelector('.container');
+        panel.classList.toggle('hidden');
+        container.classList.toggle('admin-mode');
+    }
+
+    // İlk yükleme
+    renderLinks();
+</script>
+
+</body>
+</html>
